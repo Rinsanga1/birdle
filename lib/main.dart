@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
+import 'game.dart';
 
 void main() {
   runApp(const MainApp());
@@ -15,81 +15,58 @@ class MainApp extends StatelessWidget {
         appBar: AppBar(
           title: const Align(alignment: Alignment.center, child: Text("Zodle")),
         ),
-        body: Center(child: GamePage(baseUrl: 'http://localhost:3000')),
+        body: const Center(child: GamePage()),
       ),
     );
   }
 }
 
 class GamePage extends StatefulWidget {
-  final String baseUrl;
-
-  const GamePage({super.key, required this.baseUrl});
+  const GamePage({super.key});
 
   @override
   State<GamePage> createState() => _GamePageState();
 }
 
 class _GamePageState extends State<GamePage> {
-  late ApiService _apiService;
   String? _hiddenWord;
   List<List<Letter>> _guesses = [];
   bool _isLoading = true;
-  String? _error;
   final int _maxGuesses = 6;
 
   @override
   void initState() {
     super.initState();
-    _apiService = ApiService(baseUrl: widget.baseUrl);
     _initGame();
   }
 
-  Future<void> _initGame() async {
-    try {
-      final todayWord = await _apiService.getTodayWord();
-      setState(() {
-        _hiddenWord = todayWord.word;
-        _guesses = List.generate(_maxGuesses, (_) => []);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
+  void _initGame() {
+    final todayWord = getTodayWord();
+    setState(() {
+      _hiddenWord = todayWord;
+      _guesses = List.generate(_maxGuesses, (_) => []);
+      _isLoading = false;
+    });
   }
 
-  Future<void> _onSubmitGuess(String guess) async {
+  void _onSubmitGuess(String guess) {
     if (_hiddenWord == null) return;
 
-    try {
-      final isValid = await _apiService.validateGuess(guess);
-      if (!isValid) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Not a valid word')));
-        }
-        return;
-      }
-
-      final letters = await _apiService.evaluateGuess(_hiddenWord!, guess);
-
-      setState(() {
-        final emptyIndex = _guesses.indexWhere((g) => g.isEmpty);
-        if (emptyIndex != -1) {
-          _guesses[emptyIndex] = letters;
-        }
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+    if (!isValidWord(guess)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Not a valid word')));
+      return;
     }
+
+    final letters = evaluateGuess(_hiddenWord!, guess);
+
+    setState(() {
+      final emptyIndex = _guesses.indexWhere((g) => g.isEmpty);
+      if (emptyIndex != -1) {
+        _guesses[emptyIndex] = letters;
+      }
+    });
   }
 
   bool get _hasMadeAllGuesses {
@@ -119,26 +96,6 @@ class _GamePageState extends State<GamePage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const CircularProgressIndicator();
-    }
-
-    if (_error != null) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Error: $_error'),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _isLoading = true;
-                _error = null;
-              });
-              _initGame();
-            },
-            child: const Text('Retry'),
-          ),
-        ],
-      );
     }
 
     return Padding(
@@ -208,6 +165,7 @@ class Tile extends StatelessWidget {
           HitType.partial => Colors.yellow,
           HitType.miss => Colors.grey,
           HitType.none => Colors.white,
+          HitType.removed => Colors.white,
         },
       ),
       child: Center(
@@ -221,7 +179,7 @@ class Tile extends StatelessWidget {
 }
 
 class GuessInput extends StatelessWidget {
-  final Future<void> Function(String) onSubmitGuess;
+  final void Function(String) onSubmitGuess;
 
   GuessInput({super.key, required this.onSubmitGuess});
 
