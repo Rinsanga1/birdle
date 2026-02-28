@@ -5,9 +5,8 @@ import {
   HttpApiGroup,
   HttpApiSwagger,
 } from "@effect/platform";
-import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
+import { BunHttpServer, BunRuntime } from "@effect/platform-bun";
 import { Effect, Layer, Schema } from "effect";
-import { createServer } from "node:http";
 import {
   getValidGuesses,
   getWordOfTheDay,
@@ -86,10 +85,10 @@ const ServerLive = HttpApiBuilder.serve().pipe(
   Layer.provide(HttpApiBuilder.middlewareCors()),
   Layer.provide(HttpApiSwagger.layer()),
   Layer.provide(ApiLive),
-  Layer.provide(NodeHttpServer.layer(createServer, { port: 3000 }))
+  Layer.provide(BunHttpServer.layer({ port: 3000 }))
 );
 
 console.log("Starting server on http://localhost:3000");
 console.log("Swagger docs at http://localhost:3000/docs");
 
-NodeRuntime.runMain(Layer.launch(ServerLive));
+BunRuntime.runMain(Layer.launch(ServerLive));
