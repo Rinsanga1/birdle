@@ -9,3 +9,7 @@
 - 1  introduction
     widget inspector and property editor
     - dart devtools
+
+- 2  the widget inspector
+
+
