@@ -12,7 +12,7 @@ typedef Letter = ({String char, HitType type});
 String getTodayWord() {
   final now = DateTime.now();
   final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
-  return targetWords[dayOfYear % targetWords.length];
+  return targetWordsDaily[dayOfYear % targetWordsDaily.length];
 }
 
 bool isValidWord(String word) {
