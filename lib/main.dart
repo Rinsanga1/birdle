@@ -58,13 +58,17 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Column(
+        title: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Zodle"),
+            const Text("Zodle"),
             Text(
               "Daily Mizo Thu Puzzle Guessing Game",
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+                color: isDarkMode ? Colors.grey.shade400 : null,
+              ),
             ),
           ],
         ),
@@ -272,9 +276,9 @@ class _WordOfTheDayPageState extends State<WordOfTheDayPage> {
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          Text(
+                          const Text(
                             'Game over!',
-                            style: const TextStyle(fontSize: 24),
+                            style: TextStyle(fontSize: 24),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
@@ -331,12 +335,6 @@ class _EndlessModePageState extends State<EndlessModePage> {
       _guesses = List.generate(_maxGuesses, (_) => []);
       _isLoading = false;
       _gamesPlayed++;
-    });
-  }
-
-  void _retryGame() {
-    setState(() {
-      _guesses = List.generate(_maxGuesses, (_) => []);
     });
   }
 
@@ -403,6 +401,12 @@ class _EndlessModePageState extends State<EndlessModePage> {
       _isLoading = true;
     });
     _initGame();
+  }
+
+  void _retryGame() {
+    setState(() {
+      _guesses = List.generate(_maxGuesses, (_) => []);
+    });
   }
 
   @override
@@ -659,22 +663,37 @@ class HelpDialog extends StatelessWidget {
   }
 
   Widget _exampleTile(String letter, HitType hitType, bool isDark) {
+    final hasLetter = letter.isNotEmpty;
     return Container(
       width: 40,
       height: 40,
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+          color: switch (hitType) {
+            HitType.hit => const Color(0xFF27a644),
+            HitType.partial => const Color(0xFFf0bf00),
+            HitType.miss =>
+              isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            HitType.none =>
+              isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            HitType.removed =>
+              isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+          },
+          width: 2,
         ),
-        color: switch (hitType) {
-          HitType.hit => isDark ? Colors.green.shade600 : Colors.green,
-          HitType.partial => isDark ? Colors.amber.shade700 : Colors.yellow,
-          HitType.miss => isDark ? Colors.blueGrey.shade700 : Colors.grey,
-          HitType.none => isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-          HitType.removed =>
-            isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        },
+        color: !hasLetter
+            ? Colors.transparent
+            : (switch (hitType) {
+                HitType.hit => const Color(0xFF27a644),
+                HitType.partial => const Color(0xFFf0bf00),
+                HitType.miss =>
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+                HitType.none =>
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+                HitType.removed =>
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+              }),
       ),
       child: Center(
         child: Text(
@@ -682,9 +701,11 @@ class HelpDialog extends StatelessWidget {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark && hitType == HitType.none
-                ? Colors.white
-                : (isDark ? Colors.black : Colors.black),
+            color: !hasLetter
+                ? Colors.transparent
+                : (hitType == HitType.hit || hitType == HitType.partial
+                      ? (hitType == HitType.hit ? Colors.white : Colors.black)
+                      : (isDark ? Colors.white : Colors.black)),
           ),
         ),
       ),
@@ -701,6 +722,7 @@ class Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasLetter = letter.isNotEmpty;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       curve: Curves.bounceIn,
@@ -708,15 +730,30 @@ class Tile extends StatelessWidget {
       height: 60,
       decoration: BoxDecoration(
         border: Border.all(
-          color: isDark ? Colors.grey.shade600 : Colors.grey.shade300,
+          color: switch (hitType) {
+            HitType.hit => const Color(0xFF27a644),
+            HitType.partial => const Color(0xFFf0bf00),
+            HitType.miss =>
+              isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            HitType.none =>
+              isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+            HitType.removed =>
+              isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+          },
+          width: 2,
         ),
-        color: switch (hitType) {
-          HitType.hit => isDark ? Colors.green.shade600 : Colors.green,
-          HitType.partial => isDark ? Colors.amber.shade700 : Colors.yellow,
-          HitType.miss => isDark ? Colors.blueGrey.shade700 : Colors.grey,
-          HitType.none => isDark ? Colors.grey.shade800 : Colors.white,
-          HitType.removed => isDark ? Colors.grey.shade800 : Colors.white,
-        },
+        color: !hasLetter
+            ? Colors.transparent
+            : (switch (hitType) {
+                HitType.hit => const Color(0xFF27a644),
+                HitType.partial => const Color(0xFFf0bf00),
+                HitType.miss =>
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+                HitType.none =>
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+                HitType.removed =>
+                  isDark ? Colors.grey.shade700 : Colors.grey.shade400,
+              }),
       ),
       child: Center(
         child: Text(
@@ -724,7 +761,11 @@ class Tile extends StatelessWidget {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark && hitType == HitType.none ? Colors.white : null,
+            color: !hasLetter
+                ? Colors.transparent
+                : (hitType == HitType.hit || hitType == HitType.partial
+                      ? (hitType == HitType.hit ? Colors.white : Colors.black)
+                      : (isDark ? Colors.white : Colors.black)),
           ),
         ),
       ),
