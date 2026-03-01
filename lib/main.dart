@@ -197,7 +197,7 @@ class _WordOfTheDayPageState extends State<WordOfTheDayPage> {
                       child: Column(
                         children: [
                           Text(
-                            'Game over! The word was: ${_hiddenWord?.toUpperCase()}',
+                            'Game over!',
                             style: const TextStyle(fontSize: 24),
                           ),
                           const SizedBox(height: 16),
@@ -388,7 +388,7 @@ class _EndlessModePageState extends State<EndlessModePage> {
                       child: Column(
                         children: [
                           Text(
-                            'Game over! The word was: ${_hiddenWord?.toUpperCase()}',
+                            'Game over!',
                             style: const TextStyle(fontSize: 24),
                           ),
                           const SizedBox(height: 16),
